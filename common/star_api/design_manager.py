@@ -111,6 +111,36 @@ class DesignManagerProject:
                 prj.sync()
         return prj
 
+    @classmethod
+    def get_live_proj(cls,
+                      dmprj_path: Union[str, Path],
+                      port: int,
+                      version: str = "19.02.009-R8") -> DesignManagerProject:
+        if isinstance(dmprj_path, str):
+            dmprj_path = Path(dmprj_path)
+        if not dmprj_path.suffix == ".dmprj":
+            raise ValueError(f"{dmprj_path} is not a STAR-CCM+ Design Manager dmprj file.")
+        if not dmprj_path.exists():
+            raise ValueError(f"No project {dmprj_path.name} exists in directory {dmprj_path.parent}.")
+        port_re = r"^\d{5}$"
+        if not re.match(port_re, str(port)):
+            raise ValueError(f"star_file of type int must specify a valid STAR-CCM+ server port.\n"
+                             f"{port} is not a valid port number.")
+
+        dmprj = DesignManagerProject(path=dmprj_path)
+        dmprj.port = port
+
+        if version is not None:
+            star_install = get_star_install(version=version)
+            if star_install is None:
+                raise ValueError(f"Version {version} not found.")
+            else:
+                dmprj.recorder.update_version(star_install)
+
+        json_file = dmprj._to_json(run=True)
+        dmprj._from_json(json_file=json_file)
+        return dmprj
+
     def __init__(self, path: Union[str, Path]):
         if isinstance(path, str):
             path = Path(path)
@@ -118,6 +148,7 @@ class DesignManagerProject:
         self.recorder = CommandRecorder(self.name, is_mdx=True)
         self.path = path
         self.studies = list()
+        self.port = None
 
     def __iter__(self):
         return iter(self.studies)
@@ -146,7 +177,8 @@ class DesignManagerProject:
                 macro = self._prep_macro_writer()
             if macro is not None:
                 macro = macro.build(self.path.parent)
-                result = self.recorder.play_macro(star_file=self.path, macro=macro, delete_macro=delete_macro)
+                sf = self.path if self.port is None else self.port
+                result = self.recorder.play_macro(star_file=sf, macro=macro, delete_macro=delete_macro)
                 print(result.stdout)
                 print(result.stderr)
 
@@ -159,6 +191,13 @@ class DesignManagerProject:
     def start(self, version: Union[str, Path] = None):
         raise NotImplementedError(f"method start not implemented for STAR-CCM+ Design Manager Projects.\n"
                                   f"Launch the server and then manually set the port attribute.")
+
+    def set_port(self, port: int):
+        port_re = r"^\d{5}$"
+        if not re.match(port_re, str(port)):
+            raise ValueError(f"star_file of type int must specify a valid STAR-CCM+ server port.\n"
+                             f"{port} is not a valid port number.")
+        self.port = port
 
     def _prep_macro_writer(self) -> Union[sm.MacroWriter, None]:
         global _api_props
@@ -226,7 +265,8 @@ class DesignManagerProject:
 
         if run:
             macro = macro.get_macro_path(workdir)
-            output = self.recorder.play_macro(star_file=self.path, macro=macro, delete_macro=True)
+            sf = self.path if self.port is None else self.port
+            output = self.recorder.play_macro(star_file=sf, macro=macro, delete_macro=True)
             print(output.stdout)
             print(output.stderr)
 

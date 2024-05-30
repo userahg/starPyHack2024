@@ -62,9 +62,11 @@ class CommandRecorder:
                                      f"star_file extension {star_file.suffix} is not recognized.")
 
         if is_server_address:
-            result = util.play_macro(macro=macro, starccm=self.star_install, port=star_file, delete_macro=False)
+            result = util.play_macro(macro=macro, starccm=self.star_install, port=star_file, delete_macro=False,
+                                     is_mdx=self.is_mdx)
         else:
-            result = util.play_macro(macro=macro, file=star_file, starccm=self.star_install, delete_macro=False)
+            result = util.play_macro(macro=macro, file=star_file, starccm=self.star_install, delete_macro=False,
+                                     is_mdx=self.is_mdx)
         if delete_macro:
             os.remove(macro)
         return result

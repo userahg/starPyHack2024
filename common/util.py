@@ -77,7 +77,8 @@ def play_macro(macro: Union[str, Path],
                file: Union[str, Path] = None,
                starccm: STARCCMInstall = None,
                port: int = None,
-               delete_macro: bool = False) -> CompletedProcess:
+               delete_macro: bool = False,
+               is_mdx: bool = False) -> CompletedProcess:
     if isinstance(file, str):
         file = Path(file)
     if isinstance(macro, str):
@@ -111,6 +112,8 @@ def play_macro(macro: Union[str, Path],
         else:
             a = [starccm.starccm(), "-batch", macro, file]
             w = file.parent
+        if is_mdx:
+            a.append("-dmproject")
         return a, w
 
     arguments, work_dir = compile_args(live_server)
