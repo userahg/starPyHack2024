@@ -8,7 +8,7 @@ from pathlib import Path
 work_dir = Path(r"E:\OneDrive - Siemens AG\mdx\hackathon\2024\starPy")
 name = "exhaust_test"
 version = "19.02.009-R8"
-port = 47828
+port = 47827
 
 
 def plot_best_design_histories(proj: dm.DesignManagerProject):

@@ -176,9 +176,13 @@ class DesignManagerProject:
             else:
                 macro = self._prep_macro_writer()
             if macro is not None:
-                macro = macro.build(self.path.parent)
-                sf = self.path if self.port is None else self.port
-                result = self.recorder.play_macro(star_file=sf, macro=macro, delete_macro=delete_macro)
+                if self.port is not None:
+                    macro.save_root_obj = False
+                    sf = self.port
+                else:
+                    sf = self.path
+                macro_path = macro.build(self.path.parent)
+                result = self.recorder.play_macro(star_file=sf, macro=macro_path, delete_macro=delete_macro)
                 print(result.stdout)
                 print(result.stderr)
 
