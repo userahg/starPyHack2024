@@ -9,6 +9,7 @@ from pathlib import Path
 from subprocess import CompletedProcess
 from common.star_versions import STARCCMInstall
 from common.star_versions import get_star_install
+from common.star_versions import get_star_install_local
 
 
 class CommandRecorder:
@@ -17,7 +18,7 @@ class CommandRecorder:
         self.record_all = False
         self.name = name
         self.is_mdx = is_mdx
-        self.star_install = get_star_install()
+        self.star_install = get_star_install_local()
         self.macro = self.new_macro()
 
     def clear_commands(self):
