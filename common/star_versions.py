@@ -1,11 +1,12 @@
 import re
 from pathlib import Path
 from typing import Union
+from common.local_settings import default_star_ccm_plus
 from common.local_settings import default_star_ccm_version
 from common.local_settings import star_ccm_plus_install_dir
 from common.local_settings import star_ccm_plus_bkup_install_dir
 
-star_version_re = r"^\d{1,2}.0[1-6].\d{3}(-R8)?$"
+star_version_re = r"^\d{1,2}.0[1-6].\d{3}_01$"
 
 
 class STARCCMInstall:
@@ -20,11 +21,11 @@ class STARCCMInstall:
         return self._root_dir.name
 
     def starccm(self) -> Path:
-        starccm = self._bin_dir.joinpath("starccm+.bat")
+        starccm = self._bin_dir.joinpath("starccm+")
         return starccm
 
     def starlaunch(self) -> Path:
-        starlaunch = self._bin_dir.joinpath("starlaunch.bat")
+        starlaunch = self._bin_dir.joinpath("starlaunch")
         return starlaunch
 
     def cad_client_installed(self) -> bool:
@@ -68,12 +69,14 @@ def list_installed_versions(p: Path) -> list[STARCCMInstall]:
     version_paths = []
     if validate_install_dir(p):
         for file in p.iterdir():
+            print (file.name)
             match = re.search(exp, file.name)
             if match:
+                print ("Matched : " + file.name)
                 installed_version_path = file.joinpath(f"STAR-CCM+{file.name}")
                 installed_version_path = installed_version_path.joinpath("star")
                 installed_version_path = installed_version_path.joinpath("bin")
-                installed_version_path = installed_version_path.joinpath("starccm+.bat")
+                installed_version_path = installed_version_path.joinpath("starccm+")
                 if installed_version_path.exists():
                     installed_version = STARCCMInstall(installed_version_path)
                     version_paths.append(installed_version)
@@ -86,17 +89,23 @@ def all_installed_versions(install_dir: Union[str, Path] = None) -> list[STARCCM
     if install_dir is not None:
         if isinstance(install_dir, str):
             install_dir = Path(install_dir)
+        #print (install_dir)
         install_paths.append(install_dir)
     install_paths.append(Path(star_ccm_plus_install_dir))
     install_paths.append(Path(star_ccm_plus_bkup_install_dir))
 
     starccm_paths = []
 
+    print("install paths...")
     for install_path in install_paths:
+        print (install_path)
         starccm_paths.extend(list_installed_versions(install_path))
 
     return starccm_paths
 
+def get_star_install_local(distrib: str = default_star_ccm_plus)-> Union[STARCCMInstall, None]:
+    installed_version = STARCCMInstall(distrib)
+    return installed_version
 
 def get_star_install(version: str = default_star_ccm_version,
                      install_dir: Union[str, Path] = None) -> Union[STARCCMInstall, None]:

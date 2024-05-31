@@ -3,6 +3,7 @@ import json
 import shutil
 import numpy as np
 import common.starccm_macros as sm
+import common.star_versions as sv
 from numpy.typing import ArrayLike
 from common.starccm_macros import LineType as LT
 from common.star_api.root_obj_utils import *
@@ -14,6 +15,7 @@ import datetime
 import common.util as util
 import common.math_util as m_util
 import common.visualization as viz
+from common.local_settings import default_star_ccm_plus
 
 
 t_name = JSONTag("name")
@@ -92,7 +94,43 @@ class DesignManagerProject:
         dmprj_path = work_dir.joinpath(f"{dmprj}.dmprj")
         if not dmprj_path.exists():
             raise ValueError(f"No project {dmprj}.dmprj found in workdir: {work_dir}")
-        star_install = get_star_install(version=version)
+        star_install = sv.get_star_install(version=version)
+        if star_install is None:
+            raise ValueError(f"Version {version} not found.")
+
+        if sync:
+            prj = DesignManagerProject(dmprj_path)
+            prj.recorder.update_version(star_install)
+            prj.sync()
+        else:
+            json_path = work_dir.joinpath(f"{dmprj}.json")
+            if json_path.exists():
+                prj = DesignManagerProject.from_json(json_path)
+                prj.recorder.update_version(star_install)
+            else:
+                prj = DesignManagerProject(dmprj_path)
+                prj.recorder.update_version(star_install)
+                prj.sync()
+        return prj
+
+    @classmethod
+    def get_proj_distrib(cls,
+                 work_dir: Union[str, Path],
+                 dmprj: str,
+                 sync: bool = False,
+                 distrib: str = r"/install/STAR-CCMP/lin64-r8/19.02.009_01/STAR-CCM+19.02.009-R8/star/bin/starccm+") -> DesignManagerProject:
+        if isinstance(work_dir, str):
+            work_dir = Path(work_dir)
+        if dmprj.endswith(".dmprj"):
+            split_name = dmprj.split(".")
+            dmprj = ""
+            for s in split_name[:-1]:
+                dmprj += s
+
+        dmprj_path = work_dir.joinpath(f"{dmprj}.dmprj")
+        if not dmprj_path.exists():
+            raise ValueError(f"No project {dmprj}.dmprj found in workdir: {work_dir}")
+        star_install = sv.get_star_install_local(distrib=distrib)
         if star_install is None:
             raise ValueError(f"Version {version} not found.")
 
