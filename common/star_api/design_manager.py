@@ -112,6 +112,7 @@ class DesignManagerProject:
                 prj.recorder.update_version(star_install)
                 prj.sync()
         return prj
+        
 
     @classmethod
     def get_proj_distrib(cls,
@@ -174,6 +175,39 @@ class DesignManagerProject:
                 raise ValueError(f"Version {version} not found.")
             else:
                 dmprj.recorder.update_version(star_install)
+
+        json_file = dmprj._to_json(run=True)
+        dmprj._from_json(json_file=json_file)
+        return dmprj
+
+    @classmethod
+    def get_live_proj(cls,
+                      dmprj_path: Union[str, Path],
+                      port: int,
+                      distrib: str = None,
+                      version: str = "19.02.009-R8") -> DesignManagerProject:
+        if isinstance(dmprj_path, str):
+            dmprj_path = Path(dmprj_path)
+        if not dmprj_path.suffix == ".dmprj":
+            raise ValueError(f"{dmprj_path} is not a STAR-CCM+ Design Manager dmprj file.")
+        if not dmprj_path.exists():
+            raise ValueError(f"No project {dmprj_path.name} exists in directory {dmprj_path.parent}.")
+        port_re = r"^\d{5}$"
+        if not re.match(port_re, str(port)):
+            raise ValueError(f"star_file of type int must specify a valid STAR-CCM+ server port.\n"
+                             f"{port} is not a valid port number.")
+
+        dmprj = DesignManagerProject(path=dmprj_path)
+        dmprj.port = port
+
+        if distrib is not None:
+            star_install = get_star_install_local(distrib=distrib)        
+        elif version is not None:
+            star_install = get_star_install(version=version)
+        if star_install is None:
+            raise ValueError(f"Version {version} not found.")
+        else:
+            dmprj.recorder.update_version(star_install)
 
         json_file = dmprj._to_json(run=True)
         dmprj._from_json(json_file=json_file)
