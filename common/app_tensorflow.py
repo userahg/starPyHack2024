@@ -148,6 +148,7 @@ def study_predictions(study: dm.Study, model_name: str = "dnn.keras"):
         print(f"\t\tActual: {actual}")
         print(f"\t\tPredicted: {predicted}")
         print(f"\t\tError: {actual - predicted}")
+        print(f"\t\t% Error: {100.0*(actual - predicted)/actual}")
 
 
 if __name__ == "__main__":
