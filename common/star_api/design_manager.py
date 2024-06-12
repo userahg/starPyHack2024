@@ -80,7 +80,13 @@ class DesignManagerProject:
                  work_dir: Union[str, Path],
                  dmprj: str,
                  sync: bool = False,
-                 version: str = "19.02.009-R8") -> DesignManagerProject:
+                 version: Union[str, STARCCMInstall] = "19.02.009-R8") -> DesignManagerProject:
+        if isinstance(version, str):
+            star_install = get_star_install(version=version)
+            if star_install is None:
+                raise ValueError(f"Version {version} is not found.")
+        else:
+            star_install = version
         if isinstance(work_dir, str):
             work_dir = Path(work_dir)
         if dmprj.endswith(".dmprj"):
@@ -92,9 +98,6 @@ class DesignManagerProject:
         dmprj_path = work_dir.joinpath(f"{dmprj}.dmprj")
         if not dmprj_path.exists():
             raise ValueError(f"No project {dmprj}.dmprj found in workdir: {work_dir}")
-        star_install = get_star_install(version=version)
-        if star_install is None:
-            raise ValueError(f"Version {version} not found.")
 
         if sync:
             prj = DesignManagerProject(dmprj_path)
@@ -115,7 +118,13 @@ class DesignManagerProject:
     def get_live_proj(cls,
                       dmprj_path: Union[str, Path],
                       port: int,
-                      version: str = "19.02.009-R8") -> DesignManagerProject:
+                      version: Union[str, STARCCMInstall] = "19.02.009-R8") -> DesignManagerProject:
+        if isinstance(version, str):
+            star_install = get_star_install(version=version)
+            if star_install is None:
+                raise ValueError(f"Version {version} is not found.")
+        else:
+            star_install = version
         if isinstance(dmprj_path, str):
             dmprj_path = Path(dmprj_path)
         if not dmprj_path.suffix == ".dmprj":
@@ -128,15 +137,8 @@ class DesignManagerProject:
                              f"{port} is not a valid port number.")
 
         dmprj = DesignManagerProject(path=dmprj_path)
+        dmprj.recorder.update_version(star_install)
         dmprj.port = port
-
-        if version is not None:
-            star_install = get_star_install(version=version)
-            if star_install is None:
-                raise ValueError(f"Version {version} not found.")
-            else:
-                dmprj.recorder.update_version(star_install)
-
         json_file = dmprj._to_json(run=True)
         dmprj._from_json(json_file=json_file)
         return dmprj
