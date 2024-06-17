@@ -5,9 +5,9 @@ import numpy as np
 from matplotlib import pyplot as plt
 from pathlib import Path
 
-work_dir = Path(r"E:\OneDrive - Siemens AG\mdx\hackathon\2024\starPy")
+version = dm.STARCCMInstall(r"E:\Siemens\STARCCM\starpy\STAR-CCM+19.04.007-2-ga404231\star\bin\starccm+.bat")
+work_dir = Path(r"E:\OneDrive - Siemens AG\mdx\hackathon\2024\starPy\svd")
 name = "svd_proj_test"
-version = "19.02.009-R8"
 
 
 def plot_statistical_histories(proj: dm.DesignManagerProject):

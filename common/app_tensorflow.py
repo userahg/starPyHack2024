@@ -18,7 +18,7 @@ version = "19.02.009-R8"
 def import_data(proj: dm.DesignManagerProject,
                 src_study: dm.Study,
                 response: str,
-                study_regex: str = None) -> [dm.Study]:
+                study_regex: str = None) -> pd.DataFrame:
     if study_regex is None:
         studies = proj.studies
     else:
@@ -136,6 +136,7 @@ def study_predictions(study: dm.Study, model_name: str = "dnn.keras"):
     loaded_model = tf.keras.models.load_model(model_name)
     successful = study.get_design_set("Successful")
     columns = get_required_columns(study)
+
     for design in successful:
         data = design.data_frame()
         predicted = loaded_model.predict(data[columns]).flatten()[0]
@@ -152,7 +153,7 @@ def study_predictions(study: dm.Study, model_name: str = "dnn.keras"):
 
 
 if __name__ == "__main__":
-    # dnn_model = train_model(plot_history=True, plot_predictions=True, save_model="dnn.keras")
+    dnn_model = train_model(plot_history=True, plot_predictions=True, save_model="dnn.keras")
     dmprj = dm.DesignManagerProject.get_proj(work_dir=work_dir, dmprj=proj_name, version=version)
     test_study = dmprj.studies[0]
     study_predictions(test_study)
